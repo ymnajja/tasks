@@ -7,11 +7,12 @@ metadata:
     app.kubernetes.io/part-of: operator2
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: operator2
-  name: test-sample
+  name: rye
+  namespace: rye
 spec:
-  Enable: true
-  PodName: test
-  PodNamespace: securinets
+  Enable: false
+  PodName: rye
+  PodNamespace: rye
   PodSpec:
     containers:
       - name: nginx-container

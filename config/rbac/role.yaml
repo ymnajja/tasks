@@ -10,7 +10,6 @@ rules:
   - podapps
   verbs:
   - create
-  - delete
   - get
   - list
   - patch
@@ -30,3 +29,12 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - create
+  - get
+  - list
+  - watch

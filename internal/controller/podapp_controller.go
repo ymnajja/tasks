@@ -40,10 +40,11 @@ type PodAppReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=app.example.com,resources=podapps,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=app.example.com,resources=podapps/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=app.example.com,resources=podapps/finalizers,verbs=update
-
+// +kubebuilder:rbac:groups=app.example.com,resources=podapps,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=app.example.com,resources=podapps/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=app.example.com,resources=podapps/finalizers,verbs=update
+// +kubebuilder:rbac:groups=resources=pods,verbs=list;watch;create;
+// +kubebuilder:rbac:groups=resources=services,verbs=list;watch;create;
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 // TODO(user): Modify the Reconcile function to compare the state specified by
@@ -57,13 +58,12 @@ func (r *PodAppReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	l := log.FromContext(ctx)
 	l.Info("enter reconcile", "req", req)
 	podApp := &appv1.PodApp{}
-	r.Get(ctx, types.NamespacedName{Name: req.Name, Namespace: req.Namespace}, podApp)
+	r.Get(ctx, types.NamespacedName{Name: req.Name, Namespace: "rye"}, podApp)
 	l.Info("ENTEr reconcile", "Spec", podApp.Spec, "Status", podApp.Status)
 	r.reconcilePod(ctx, podApp, l)
 	l.Info("ENTEr reconcile", "Spec", podApp.Spec, "Status", podApp.Status)
-	r.reconcileservice(ctx, podApp, l)
 	if podApp.Spec.Enable {
-		servicename := podApp.Spec.PodName + "-Is-not-fun"
+		servicename := "gin-Is-not-weak-after-all"
 		l.Info("Reconcile complete", "flag", servicename)
 	}
 	return ctrl.Result{}, nil
@@ -71,8 +71,8 @@ func (r *PodAppReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 func (r *PodAppReconciler) reconcilePod(ctx context.Context, PodApp *appv1.PodApp, l logr.Logger) error {
 
 	pod := &corev1.Pod{}
-
-	err := r.Get(ctx, types.NamespacedName{Name: PodApp.Spec.PodName, Namespace: PodApp.Spec.PodNamespace}, pod)
+	podname := "gin-pod"
+	err := r.Get(ctx, types.NamespacedName{Name: podname, Namespace: "gin"}, pod)
 
 	if err == nil {
 		l.Info("Pod Found")
@@ -87,14 +87,14 @@ func (r *PodAppReconciler) reconcilePod(ctx context.Context, PodApp *appv1.PodAp
 
 	pod = &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      PodApp.Spec.PodName,
-			Namespace: PodApp.Spec.PodNamespace,
+			Name:      podname,
+			Namespace: "gin",
 		},
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
 				{
-					Name:  PodApp.Spec.PodSpec.Containers[0].Name,
-					Image: PodApp.Spec.PodSpec.Containers[0].Image,
+					Name:  "gin-pod",
+					Image: "nginx",
 				},
 			},
 		},
@@ -102,37 +102,6 @@ func (r *PodAppReconciler) reconcilePod(ctx context.Context, PodApp *appv1.PodAp
 
 	l.Info("Creating pod")
 	return r.Create(ctx, pod)
-}
-
-func (r *PodAppReconciler) reconcileservice(ctx context.Context, PodApp *appv1.PodApp, l logr.Logger) error {
-	Service := &corev1.Service{}
-
-	err := r.Get(ctx, types.NamespacedName{Name: PodApp.Spec.PodName, Namespace: PodApp.Spec.PodNamespace}, Service)
-
-	if err == nil {
-		l.Info("service Found")
-		return nil
-	}
-
-	if !errors.IsNotFound(err) {
-		return err
-	}
-
-	l.Info("service Not found")
-
-	Service = &corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      PodApp.Spec.PodName,
-			Namespace: PodApp.Spec.PodNamespace,
-		},
-		Spec: corev1.ServiceSpec{
-			Type:  corev1.ServiceTypeNodePort,
-			Ports: []corev1.ServicePort{{Port: 80, NodePort: 30080, Protocol: corev1.ProtocolTCP}},
-		},
-	}
-
-	l.Info("Creating service")
-	return r.Create(ctx, Service)
 }
 
 // SetupWithManager sets up the controller with the Manager.
