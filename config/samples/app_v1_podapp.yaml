@@ -1,0 +1,18 @@
+apiVersion: app.example.com/v1
+kind: PodApp
+metadata:
+  labels:
+    app.kubernetes.io/name: podapp
+    app.kubernetes.io/instance: podapp-sample
+    app.kubernetes.io/part-of: operator2
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: operator2
+  name: test-sample
+spec:
+  Enable: true
+  PodName: test
+  PodNamespace: securinets
+  PodSpec:
+    containers:
+      - name: nginx-container
+        image: nginx:latest
